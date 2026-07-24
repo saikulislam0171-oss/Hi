@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -29,10 +30,25 @@ fun YouTubeScreen(
 ) {
     var webView: WebView? by remember { mutableStateOf(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var customView by remember { mutableStateOf<View?>(null) }
+    var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
 
-    // Intercept back gesture: if web history can go back, go back; otherwise exit YouTube screen
+    val hideCustomViewLambda = remember {
+        {
+            customViewCallback?.onCustomViewHidden()
+            customView = null
+            customViewCallback = null
+        }
+    }
+
+    // Intercept back gesture:
+    // 1. Exit HTML5 fullscreen mode if active
+    // 2. Or go back in web history
+    // 3. Or exit YouTube screen
     BackHandler {
-        if (webView?.canGoBack() == true) {
+        if (customView != null) {
+            hideCustomViewLambda()
+        } else if (webView?.canGoBack() == true) {
             webView?.goBack()
         } else {
             onExit()
@@ -45,7 +61,7 @@ fun YouTubeScreen(
             .background(Color.Black)
             .testTag("youtube_fullscreen_container")
     ) {
-        // Fullscreen YouTube WebView
+        // Main YouTube WebView (kept active in composition so video state is maintained without reloading)
         AndroidView(
             factory = { context ->
                 WebView(context).apply {
@@ -80,7 +96,20 @@ fun YouTubeScreen(
                         }
                     }
 
-                    webChromeClient = WebChromeClient()
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                            if (customView != null) {
+                                callback?.onCustomViewHidden()
+                                return
+                            }
+                            customView = view
+                            customViewCallback = callback
+                        }
+
+                        override fun onHideCustomView() {
+                            hideCustomViewLambda()
+                        }
+                    }
 
                     loadUrl("https://www.youtube.com")
                     webView = this
@@ -92,8 +121,43 @@ fun YouTubeScreen(
             modifier = Modifier.fillMaxSize()
         )
 
+        // Overlay for Fullscreen HTML5 Video Custom View (when YouTube full screen button is clicked)
+        customView?.let { cView ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .testTag("youtube_html5_fullscreen_overlay")
+            ) {
+                AndroidView(
+                    factory = {
+                        (cView.parent as? ViewGroup)?.removeView(cView)
+                        cView
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Floating exit button to exit custom fullscreen view
+                SmallFloatingActionButton(
+                    onClick = { hideCustomViewLambda() },
+                    containerColor = Color.Black.copy(alpha = 0.6f),
+                    contentColor = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 16.dp, end = 16.dp)
+                        .size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Exit Fullscreen",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+
         // Loading indicator
-        if (isLoading) {
+        if (isLoading && customView == null) {
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -102,22 +166,24 @@ fun YouTubeScreen(
             )
         }
 
-        // Small floating exit button overlay
-        SmallFloatingActionButton(
-            onClick = { onExit() },
-            containerColor = Color.Black.copy(alpha = 0.6f),
-            contentColor = Color.White,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 12.dp, start = 12.dp)
-                .size(36.dp)
-                .testTag("youtube_exit_fab")
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Exit YouTube",
-                modifier = Modifier.size(18.dp)
-            )
+        // Floating exit button overlay for normal view mode
+        if (customView == null) {
+            SmallFloatingActionButton(
+                onClick = { onExit() },
+                containerColor = Color.Black.copy(alpha = 0.6f),
+                contentColor = Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 12.dp, start = 12.dp)
+                    .size(36.dp)
+                    .testTag("youtube_exit_fab")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Exit YouTube",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }

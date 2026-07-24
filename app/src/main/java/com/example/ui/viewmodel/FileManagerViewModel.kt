@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 enum class NavigationTab {
     STORAGE_OVERVIEW,
     AUDIO_VIDEO,
-    DRAG_DROP_ORGANIZER,
+    HD_MOVIES,
     CLOUD_DRIVE,
     FAVORITES,
     YOUTUBE

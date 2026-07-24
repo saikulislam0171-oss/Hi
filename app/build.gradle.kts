@@ -68,6 +68,20 @@ secrets {
 
 googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
 
+val copyApkTask = tasks.register<Copy>("copyApkToApplicationReady") {
+    from(layout.buildDirectory.dir("outputs/apk"))
+    into(rootDir.resolve("application_ready"))
+    include("**/*.apk")
+    eachFile {
+        path = name
+    }
+    includeEmptyDirs = false
+}
+
+tasks.matching { it.name.startsWith("assemble") || it.name.startsWith("package") }.configureEach {
+    finalizedBy(copyApkTask)
+}
+
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {

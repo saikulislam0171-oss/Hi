@@ -216,7 +216,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            if (selectedTab != NavigationTab.YOUTUBE) {
+            if (selectedTab != NavigationTab.YOUTUBE && selectedTab != NavigationTab.HD_MOVIES) {
                 Column {
                     TopAppBar(
                         title = {
@@ -313,7 +313,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
             }
         },
         bottomBar = {
-            if (selectedTab != NavigationTab.YOUTUBE) {
+            if (selectedTab != NavigationTab.YOUTUBE && selectedTab != NavigationTab.HD_MOVIES) {
                 Column(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
@@ -358,16 +358,17 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                         )
 
                         NavigationBarItem(
-                            selected = selectedTab == NavigationTab.DRAG_DROP_ORGANIZER,
-                            onClick = { viewModel.selectTab(NavigationTab.DRAG_DROP_ORGANIZER) },
+                            selected = selectedTab == NavigationTab.HD_MOVIES,
+                            onClick = { viewModel.selectTab(NavigationTab.HD_MOVIES) },
                             icon = {
                                 Icon(
-                                    imageVector = if (selectedTab == NavigationTab.DRAG_DROP_ORGANIZER) Icons.Filled.DriveFileMove else Icons.Outlined.DriveFileMove,
-                                    contentDescription = "Drag Drop"
+                                    imageVector = if (selectedTab == NavigationTab.HD_MOVIES) Icons.Filled.Movie else Icons.Outlined.Movie,
+                                    contentDescription = "HD Movies",
+                                    tint = if (selectedTab == NavigationTab.HD_MOVIES) Color(0xFFE50914) else LocalContentColor.current
                                 )
                             },
-                            label = { Text("ড্র্যাগ-ড্রপ", fontSize = 11.sp) },
-                            modifier = Modifier.testTag("nav_drag_drop")
+                            label = { Text("এইচডি মুভিজ", fontSize = 11.sp) },
+                            modifier = Modifier.testTag("nav_hd_movies")
                         )
 
                         NavigationBarItem(
@@ -460,15 +461,9 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                     )
                 }
 
-                NavigationTab.DRAG_DROP_ORGANIZER -> {
-                    DragDropOrganizerView(
-                        availableFiles = allMediaCombined,
-                        draggedItem = draggedItem,
-                        onStartDrag = { viewModel.startDrag(it) },
-                        onCancelDrag = { viewModel.endDrag() },
-                        onDropToTarget = { file, targetFolder, provider ->
-                            viewModel.dropItemToTarget(file, targetFolder, provider)
-                        }
+                NavigationTab.HD_MOVIES -> {
+                    HdMoviesScreen(
+                        onExit = { viewModel.selectTab(NavigationTab.STORAGE_OVERVIEW) }
                     )
                 }
 
