@@ -139,7 +139,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
             } else if (file.fileType == FileType.AUDIO) {
                 viewModel.playAudio(file)
             } else {
-                viewModel.showStatusMessage("ফাইল অ্যাক্সেস করা হয়েছে: ${file.name}")
+                viewModel.showStatusMessage("File accessed: ${file.name}")
             }
         }
     }
@@ -177,7 +177,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
         val granted = permissionsMap.values.any { it }
         viewModel.setStoragePermissionGranted(granted)
         if (granted) {
-            viewModel.showStatusMessage("স্টোরেজ পারমিশন অনুমোদিত হয়েছে! ফাইল স্ক্যান করা হচ্ছে... 📂")
+            viewModel.showStatusMessage("Storage permission granted! Scanning files... 📂")
         }
     }
 
@@ -216,7 +216,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            if (selectedTab != NavigationTab.YOUTUBE && selectedTab != NavigationTab.HD_MOVIES) {
+            if (selectedTab != NavigationTab.YOUTUBE && selectedTab != NavigationTab.HD_MOVIES && selectedTab != NavigationTab.GOOGLE_SEARCH && selectedTab != NavigationTab.AUDIO_VIDEO) {
                 Column {
                     TopAppBar(
                         title = {
@@ -238,14 +238,14 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "ফাইল ম্যানেজার",
+                                        text = "File Manager Pro",
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 17.sp
                                         )
                                     )
                                     Text(
-                                        text = "ড্র্যাগ-ড্রপ & ক্লাউড ড্রাইভার",
+                                        text = "Cloud & Media Hub",
                                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -279,7 +279,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "ফাইল পাঠান 📤 (নির্বাচন করুন)",
+                                    text = "Send File 📤 (Select)",
                                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     modifier = Modifier.weight(1f, fill = false)
@@ -291,12 +291,12 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                             activity?.finish()
                                         }
                                     ) {
-                                        Text("বাতিল", fontSize = 12.sp)
+                                        Text("Cancel", fontSize = 12.sp)
                                     }
                                     IconButton(
                                         onClick = {
                                             isPickerModeActive = false
-                                            viewModel.showStatusMessage("সাধারণ ফাইল ম্যানেজার মোড চালু হয়েছে")
+                                            viewModel.showStatusMessage("Standard File Manager mode active")
                                         }
                                     ) {
                                         Icon(
@@ -313,7 +313,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
             }
         },
         bottomBar = {
-            if (selectedTab != NavigationTab.YOUTUBE && selectedTab != NavigationTab.HD_MOVIES) {
+            if (selectedTab != NavigationTab.YOUTUBE && selectedTab != NavigationTab.HD_MOVIES && selectedTab != NavigationTab.GOOGLE_SEARCH) {
                 Column(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
@@ -340,7 +340,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                     contentDescription = "Overview"
                                 )
                             },
-                            label = { Text("স্টোরেজ", fontSize = 11.sp) },
+                            label = { Text("Storage", fontSize = 11.sp) },
                             modifier = Modifier.testTag("nav_overview")
                         )
 
@@ -353,7 +353,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                     contentDescription = "Audio Video"
                                 )
                             },
-                            label = { Text("ভিডিও-অডিও", fontSize = 11.sp) },
+                            label = { Text("Media", fontSize = 11.sp) },
                             modifier = Modifier.testTag("nav_media")
                         )
 
@@ -367,21 +367,36 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                     tint = if (selectedTab == NavigationTab.HD_MOVIES) Color(0xFFE50914) else LocalContentColor.current
                                 )
                             },
-                            label = { Text("এইচডি মুভিজ", fontSize = 11.sp) },
+                            label = { Text("Movies", fontSize = 11.sp) },
                             modifier = Modifier.testTag("nav_hd_movies")
                         )
 
                         NavigationBarItem(
-                            selected = selectedTab == NavigationTab.CLOUD_DRIVE,
-                            onClick = { viewModel.selectTab(NavigationTab.CLOUD_DRIVE) },
+                            selected = selectedTab == NavigationTab.VIRTUAL_APP,
+                            onClick = { viewModel.selectTab(NavigationTab.VIRTUAL_APP) },
                             icon = {
                                 Icon(
-                                    imageVector = if (selectedTab == NavigationTab.CLOUD_DRIVE) Icons.Filled.Cloud else Icons.Outlined.Cloud,
-                                    contentDescription = "Cloud"
+                                    imageVector = if (selectedTab == NavigationTab.VIRTUAL_APP) Icons.Filled.AppShortcut else Icons.Outlined.AppShortcut,
+                                    contentDescription = "Virtual App",
+                                    tint = if (selectedTab == NavigationTab.VIRTUAL_APP) MaterialTheme.colorScheme.primary else LocalContentColor.current
                                 )
                             },
-                            label = { Text("ক্লাউড", fontSize = 11.sp) },
-                            modifier = Modifier.testTag("nav_cloud")
+                            label = { Text("Apps", fontSize = 11.sp) },
+                            modifier = Modifier.testTag("nav_virtual_app")
+                        )
+
+                        NavigationBarItem(
+                            selected = selectedTab == NavigationTab.GOOGLE_SEARCH,
+                            onClick = { viewModel.selectTab(NavigationTab.GOOGLE_SEARCH) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (selectedTab == NavigationTab.GOOGLE_SEARCH) Icons.Filled.Search else Icons.Outlined.Search,
+                                    contentDescription = "Google Search",
+                                    tint = if (selectedTab == NavigationTab.GOOGLE_SEARCH) Color(0xFF4285F4) else LocalContentColor.current
+                                )
+                            },
+                            label = { Text("Google", fontSize = 11.sp) },
+                            modifier = Modifier.testTag("nav_google_search")
                         )
 
                         NavigationBarItem(
@@ -393,7 +408,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                     contentDescription = "Favorites"
                                 )
                             },
-                            label = { Text("পছন্দসই", fontSize = 11.sp) },
+                            label = { Text("Favorites", fontSize = 11.sp) },
                             modifier = Modifier.testTag("nav_favorites")
                         )
 
@@ -407,7 +422,7 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                                     tint = if (selectedTab == NavigationTab.YOUTUBE) Color(0xFFFF0000) else LocalContentColor.current
                                 )
                             },
-                            label = { Text("ইউটিউব", fontSize = 11.sp) },
+                            label = { Text("YouTube", fontSize = 11.sp) },
                             modifier = Modifier.testTag("nav_youtube")
                         )
                     }
@@ -467,14 +482,15 @@ fun MainFileManagerApp(viewModel: FileManagerViewModel) {
                     )
                 }
 
-                NavigationTab.CLOUD_DRIVE -> {
-                    CloudDriveScreen(
-                        cloudAccounts = cloudAccounts,
-                        cloudFiles = cloudFiles,
-                        favoriteIds = favoriteIds,
-                        onToggleConnection = { viewModel.toggleCloudAccountConnection(it) },
-                        onFileClick = { file -> handleFileClick(file) },
-                        onFavoriteToggle = { viewModel.toggleFavorite(it) }
+                NavigationTab.VIRTUAL_APP -> {
+                    VirtualAppScreen(
+                        onExit = { viewModel.selectTab(NavigationTab.STORAGE_OVERVIEW) }
+                    )
+                }
+
+                NavigationTab.GOOGLE_SEARCH -> {
+                    GoogleSearchScreen(
+                        onExit = { viewModel.selectTab(NavigationTab.STORAGE_OVERVIEW) }
                     )
                 }
 

@@ -109,7 +109,7 @@ fun CloudAccountCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "স্টোরেজ ব্যবহার: ${String.format("%.1f GB", account.usedStorageGb)} / ${String.format("%.0f GB", account.totalStorageGb)}",
+                        text = "Storage Usage: ${String.format("%.1f GB", account.usedStorageGb)} / ${String.format("%.0f GB", account.totalStorageGb)}",
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

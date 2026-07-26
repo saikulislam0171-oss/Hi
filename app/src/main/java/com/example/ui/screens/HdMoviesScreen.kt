@@ -138,7 +138,7 @@ fun HdMoviesScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "HD Movies Cloud (এডব্লকার সক্রিয়: $blockedAdCount)",
+                                text = "HD Movies Cloud (AdBlocker Active: $blockedAdCount)",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp
@@ -382,7 +382,7 @@ fun HdMoviesScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "আপনি কি এই লিংকে যেতে চান?",
+                                        text = "Open external link?",
                                         style = MaterialTheme.typography.titleSmall.copy(
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 13.sp
@@ -406,7 +406,7 @@ fun HdMoviesScreen(
                                     onClick = { pendingExternalUrl = null },
                                     contentPadding = PaddingValues(horizontal = 10.dp)
                                 ) {
-                                    Text("ক্যানসেল", fontSize = 12.sp, color = Color.LightGray)
+                                    Text("Cancel", fontSize = 12.sp, color = Color.LightGray)
                                 }
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Button(
@@ -421,7 +421,7 @@ fun HdMoviesScreen(
                                     ),
                                     contentPadding = PaddingValues(horizontal = 14.dp)
                                 ) {
-                                    Text("ওপেন", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Open", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

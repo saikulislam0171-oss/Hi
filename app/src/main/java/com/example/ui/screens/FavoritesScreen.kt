@@ -48,14 +48,14 @@ fun FavoritesScreen(
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "পছন্দের ফাইলসমূহ (Favorites) ⭐",
+                    text = "Favorite Files ⭐",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                 )
                 Text(
-                    text = "দ্রুত অ্যাক্সেসের জন্য তারকাচিহ্নিত সকল ফাইল",
+                    text = "Starred files for quick access",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -80,12 +80,12 @@ fun FavoritesScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "পছন্দের তালিকায় কোনো ফাইল নেই",
+                        text = "No favorite files added",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "যেকোনো ফাইলের তারকা (Star) বাটনে ট্যাপ করে যোগ করুন",
+                        text = "Tap the star icon on any file to add it to favorites",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )

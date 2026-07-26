@@ -17,7 +17,8 @@ enum class NavigationTab {
     STORAGE_OVERVIEW,
     AUDIO_VIDEO,
     HD_MOVIES,
-    CLOUD_DRIVE,
+    VIRTUAL_APP,
+    GOOGLE_SEARCH,
     FAVORITES,
     YOUTUBE
 }
@@ -185,7 +186,7 @@ class FileManagerViewModel(application: Application) : AndroidViewModel(applicat
     fun toggleFavorite(file: MediaFileItem) {
         viewModelScope.launch {
             repository.toggleFavorite(file)
-            showStatusMessage("পছন্দসই তালিকা আপডেট করা হয়েছে: ${file.name}")
+            showStatusMessage("Favorite updated: ${file.name}")
         }
     }
 
@@ -227,7 +228,7 @@ class FileManagerViewModel(application: Application) : AndroidViewModel(applicat
         _cloudAccounts.value = _cloudAccounts.value.map { account ->
             if (account.id == accountId) {
                 val updatedState = !account.isConnected
-                val msg = if (updatedState) "${account.providerName} কানেক্ট করা হয়েছে" else "${account.providerName} ডিসকানেক্ট করা হয়েছে"
+                val msg = if (updatedState) "${account.providerName} connected" else "${account.providerName} disconnected"
                 showStatusMessage(msg)
                 account.copy(isConnected = updatedState)
             } else account
@@ -247,9 +248,9 @@ class FileManagerViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             if (targetProvider != null) {
                 repository.uploadToCloud(file, targetProvider)
-                showStatusMessage("‘${file.name}’ ক্লাউড স্টোরেজে (${targetProvider}) ড্র্যাগ & ড্রপ আপলোড সম্পন্ন হয়েছে! ☁️")
+                showStatusMessage("Uploaded '${file.name}' to cloud storage (${targetProvider})! ☁️")
             } else {
-                showStatusMessage("‘${file.name}’ ফাইলটি ‘${targetFolderName}’ ফোল্ডারে সরানো হয়েছে! 📁")
+                showStatusMessage("Moved '${file.name}' to folder '${targetFolderName}'! 📁")
             }
             _draggedItem.value = null
         }

@@ -50,14 +50,14 @@ fun CloudDriveScreen(
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "ক্লাউড স্টোরেজ ড্রাইভ ☁️",
+                    text = "Cloud Storage Drive ☁️",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                 )
                 Text(
-                    text = "গুগল ড্রাইভ, ড্রপবক্স এবং অনড্রাইভ ফাইল সিঙ্ক সার্ভিস",
+                    text = "Google Drive, Dropbox, and OneDrive sync service",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -73,7 +73,7 @@ fun CloudDriveScreen(
         ) {
             item {
                 Text(
-                    text = "সংযুক্ত ক্লাউড একাউন্টসমূহ:",
+                    text = "Connected Cloud Accounts:",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -89,7 +89,7 @@ fun CloudDriveScreen(
             item {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "সিঙ্ক করা ক্লাউড ফাইলসমূহ (${cloudFiles.size}):",
+                    text = "Synced Cloud Files (${cloudFiles.size}):",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -117,11 +117,11 @@ fun CloudDriveScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "এখনো কোনো ক্লাউড ফাইল নেই",
+                                text = "No cloud files synced yet",
                                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
                             )
                             Text(
-                                text = "‘ড্র্যাগ & ড্রপ’ ট্যাব থেকে যেকোনো ফাইল ক্লাউডে আপলোড করুন",
+                                text = "Upload files to cloud storage via Drag & Drop",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

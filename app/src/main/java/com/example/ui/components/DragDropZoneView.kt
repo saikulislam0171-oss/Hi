@@ -45,10 +45,10 @@ fun DragDropOrganizerView(
     var selectedTargetFolder by remember { mutableStateOf<DragDropTargetFolder?>(null) }
 
     val targetFolders = listOf(
-        DragDropTargetFolder("target_gdrive", "Google Drive", "গুগল ড্রাইভ (ক্লাউড)", "cloud", StorageSource.CLOUD_DRIVE),
-        DragDropTargetFolder("target_dropbox", "Dropbox Drive", "ড্রপবক্স (ক্লাউড)", "cloud", StorageSource.CLOUD_DROPBOX),
-        DragDropTargetFolder("target_fav", "Favorites Folder", "পছন্দের ফোল্ডার", "star", StorageSource.LOCAL),
-        DragDropTargetFolder("target_vault", "Media Vault", "মিডিয়া ভল্ট ফোল্ডার", "folder", StorageSource.LOCAL)
+        DragDropTargetFolder("target_gdrive", "Google Drive", "Google Drive (Cloud)", "cloud", StorageSource.CLOUD_DRIVE),
+        DragDropTargetFolder("target_dropbox", "Dropbox Drive", "Dropbox (Cloud)", "cloud", StorageSource.CLOUD_DROPBOX),
+        DragDropTargetFolder("target_fav", "Favorites Folder", "Favorites Folder", "star", StorageSource.LOCAL),
+        DragDropTargetFolder("target_vault", "Media Vault", "Media Vault Folder", "folder", StorageSource.LOCAL)
     )
 
     Column(
@@ -86,7 +86,7 @@ fun DragDropOrganizerView(
 
                 Column {
                     Text(
-                        text = "ড্র্যাগ & ড্রপ ফাইল অর্গানাইজার 🚀",
+                        text = "Drag & Drop File Organizer 🚀",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -94,7 +94,7 @@ fun DragDropOrganizerView(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "যেেকোনো ফাইল সিলেক্ট করে ক্লাউড স্টোরেজ বা পছন্দের ফোল্ডারে সহজেই ড্রপ করুন",
+                        text = "Select any file and drop it into cloud storage or favorite folders easily",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -130,21 +130,21 @@ fun DragDropOrganizerView(
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
-                                    text = "ড্র্যাগ করা ফাইল: ${file.name}",
+                                    text = "Dragged File: ${file.name}",
                                     style = MaterialTheme.typography.titleSmall.copy(
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
                                 Text(
-                                    text = "নিচের যেকোনো ফোল্ডারে ট্যাপ করে ড্রপ নিশ্চিত করুন",
+                                    text = "Tap any folder below to confirm drop",
                                     style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.8f))
                                 )
                             }
                         }
 
                         TextButton(onClick = onCancelDrag) {
-                            Text("বাতিল", color = Color.White)
+                            Text("Cancel", color = Color.White)
                         }
                     }
                 }
@@ -152,7 +152,7 @@ fun DragDropOrganizerView(
         }
 
         Text(
-            text = "১. টার্গেট ড্রপ জোন নির্বাচন করুন:",
+            text = "1. Select Target Drop Zone:",
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -229,7 +229,7 @@ fun DragDropOrganizerView(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "২. ড্র্যাগ & ড্রপ করার জন্য ফাইল নির্বাচন করুন:",
+            text = "2. Select File to Drag & Drop:",
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -299,7 +299,7 @@ fun DragDropOrganizerView(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = if (selectedTargetFolder != null) "ড্রপ করুন 📥" else "ড্র্যাগ করুন 👆",
+                                text = if (selectedTargetFolder != null) "Drop 📥" else "Drag 👆",
                                 fontSize = 12.sp
                             )
                         }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -53,176 +54,178 @@ fun StorageDashboardCard(
         modifier = modifier
             .fillMaxWidth()
             .testTag("storage_dashboard_card"),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = Color.Transparent
+        )
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF1E293B),
+                            Color(0xFF0F172A)
+                        )
+                    )
+                )
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(PrimaryBlue.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SdStorage,
-                            contentDescription = "Storage",
-                            tint = PrimaryBlue,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Column {
-                        Text(
-                            text = "ফোন স্টোরেজ বিবরণ",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                        )
                         val storageDetailText = if (totalStorageBytes > 0) {
-                            "Internal Storage (${formatStorageBytes(usedStorageBytes)} / ${formatStorageBytes(totalStorageBytes)})"
+                            "${formatStorageBytes(usedStorageBytes)} / ${formatStorageBytes(totalStorageBytes)}"
                         } else {
                             "Internal Storage"
                         }
                         Text(
                             text = storageDetailText,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                color = Color.White
+                            )
+                        )
+                        Text(
+                            text = "Used Storage",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF38BDF8).copy(alpha = 0.2f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "$usedPercentage%",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF38BDF8)
+                            )
                         )
                     }
                 }
 
-                Text(
-                    text = "$usedPercentage% ব্যবহৃত",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryBlue
-                    )
-                )
-            }
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(14.dp))
+                // Multi-color Progress Bar
+                val safeTotal = if (totalStorageBytes > 0) totalStorageBytes.toFloat() else 1f
+                val audioWeight = (audioBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
+                val videoWeight = (videoBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
+                val imageWeight = (imageBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
+                val docWeight = (docBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
+                val remainingWeight = (1f - (audioWeight + videoWeight + imageWeight + docWeight)).coerceAtLeast(0.1f)
 
-            // Multi-color Progress Bar
-            val safeTotal = if (totalStorageBytes > 0) totalStorageBytes.toFloat() else 1f
-            val audioWeight = (audioBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
-            val videoWeight = (videoBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
-            val imageWeight = (imageBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
-            val docWeight = (docBytes.toFloat() / safeTotal).coerceIn(0.005f, 0.8f)
-            val remainingWeight = (1f - (audioWeight + videoWeight + imageWeight + docWeight)).coerceAtLeast(0.1f)
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                if (audioBytes > 0) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(audioWeight)
-                            .background(StorageAudioPurple)
-                    )
-                }
-                if (videoBytes > 0) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(videoWeight)
-                            .background(StorageVideoRed)
-                    )
-                }
-                if (imageBytes > 0) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(imageWeight)
-                            .background(StorageImageEmerald)
-                    )
-                }
-                if (docBytes > 0) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(docWeight)
-                            .background(StorageDocAmber)
-                    )
-                }
-                Box(
+                Row(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(remainingWeight)
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Quick Category Chips Grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                CategoryChipItem(
-                    title = "অডিও",
-                    countText = "$audioCount ফাইল",
-                    color = StorageAudioPurple,
-                    icon = Icons.Default.MusicNote,
-                    isSelected = selectedFilter == FileType.AUDIO,
-                    onClick = {
-                        onFilterSelected(if (selectedFilter == FileType.AUDIO) null else FileType.AUDIO)
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.1f))
+                ) {
+                    if (audioBytes > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(audioWeight)
+                                .background(Color(0xFFA855F7)) // Purple
+                        )
                     }
-                )
-
-                CategoryChipItem(
-                    title = "ভিডিও",
-                    countText = "$videoCount ফাইল",
-                    color = StorageVideoRed,
-                    icon = Icons.Default.Movie,
-                    isSelected = selectedFilter == FileType.VIDEO,
-                    onClick = {
-                        onFilterSelected(if (selectedFilter == FileType.VIDEO) null else FileType.VIDEO)
+                    if (videoBytes > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(videoWeight)
+                                .background(Color(0xFFEF4444)) // Red
+                        )
                     }
-                )
-
-                CategoryChipItem(
-                    title = "ছবি",
-                    countText = "$imageCount ফাইল",
-                    color = StorageImageEmerald,
-                    icon = Icons.Default.Image,
-                    isSelected = selectedFilter == FileType.IMAGE,
-                    onClick = {
-                        onFilterSelected(if (selectedFilter == FileType.IMAGE) null else FileType.IMAGE)
+                    if (imageBytes > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(imageWeight)
+                                .background(Color(0xFF10B981)) // Green
+                        )
                     }
-                )
-
-                CategoryChipItem(
-                    title = "ডকুমেন্ট",
-                    countText = "$docCount ফাইল",
-                    color = StorageDocAmber,
-                    icon = Icons.Default.Description,
-                    isSelected = selectedFilter == FileType.DOCUMENT,
-                    onClick = {
-                        onFilterSelected(if (selectedFilter == FileType.DOCUMENT) null else FileType.DOCUMENT)
+                    if (docBytes > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(docWeight)
+                                .background(Color(0xFFF59E0B)) // Amber
+                        )
                     }
-                )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(remainingWeight)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Quick Category Chips Grid
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    CategoryChipItem(
+                        title = "Audio",
+                        countText = "$audioCount files",
+                        color = Color(0xFFA855F7), // Purple
+                        icon = Icons.Default.MusicNote,
+                        isSelected = selectedFilter == FileType.AUDIO,
+                        onClick = {
+                            onFilterSelected(if (selectedFilter == FileType.AUDIO) null else FileType.AUDIO)
+                        }
+                    )
+
+                    CategoryChipItem(
+                        title = "Video",
+                        countText = "$videoCount files",
+                        color = Color(0xFFEF4444), // Red
+                        icon = Icons.Default.Movie,
+                        isSelected = selectedFilter == FileType.VIDEO,
+                        onClick = {
+                            onFilterSelected(if (selectedFilter == FileType.VIDEO) null else FileType.VIDEO)
+                        }
+                    )
+
+                    CategoryChipItem(
+                        title = "Image",
+                        countText = "$imageCount files",
+                        color = Color(0xFF10B981), // Green
+                        icon = Icons.Default.Image,
+                        isSelected = selectedFilter == FileType.IMAGE,
+                        onClick = {
+                            onFilterSelected(if (selectedFilter == FileType.IMAGE) null else FileType.IMAGE)
+                        }
+                    )
+
+                    CategoryChipItem(
+                        title = "Docs",
+                        countText = "$docCount files",
+                        color = Color(0xFFF59E0B), // Amber
+                        icon = Icons.Default.Description,
+                        isSelected = selectedFilter == FileType.DOCUMENT,
+                        onClick = {
+                            onFilterSelected(if (selectedFilter == FileType.DOCUMENT) null else FileType.DOCUMENT)
+                        }
+                    )
+                }
             }
         }
     }
@@ -237,49 +240,44 @@ private fun CategoryChipItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
+    Column(
         modifier = Modifier
-            .width(76.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
-        color = if (isSelected) color.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        shape = RoundedCornerShape(12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .background(if (isSelected) color.copy(alpha = 0.2f) else Color.Transparent)
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(if (isSelected) color.copy(alpha = 0.3f) else color.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = color,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp
-                ),
-                color = if (isSelected) color else MaterialTheme.colorScheme.onSurface
-            )
-
-            Text(
-                text = countText,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = color,
+                modifier = Modifier.size(24.dp)
             )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp
+            ),
+            color = if (isSelected) color else Color.White
+        )
+
+        Text(
+            text = countText,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            color = Color.White.copy(alpha = 0.5f)
+        )
     }
 }

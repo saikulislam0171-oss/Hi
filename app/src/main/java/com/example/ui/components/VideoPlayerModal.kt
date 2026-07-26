@@ -1,6 +1,11 @@
 package com.example.ui.components
 
+import android.net.Uri
+import android.widget.MediaController
+import android.widget.VideoView
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,15 +16,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.model.MediaFileItem
 import com.example.ui.theme.StorageVideoRed
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoPlayerModal(
     videoItem: MediaFileItem?,
@@ -27,162 +37,263 @@ fun VideoPlayerModal(
 ) {
     if (videoItem == null) return
 
+    val context = LocalContext.current
     var isPlaying by remember { mutableStateOf(true) }
-    var currentPosition by remember { mutableFloatStateOf(0.25f) }
+    var isMuted by remember { mutableStateOf(false) }
+    var currentProgress by remember { mutableFloatStateOf(0.15f) }
+    var controlsVisible by remember { mutableStateOf(true) }
+    var videoViewRef by remember { mutableStateOf<VideoView?>(null) }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(8.dp)
-                .testTag("video_player_dialog"),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 10.dp
+                .fillMaxSize()
+                .background(Color.Black)
+                .clickable { controlsVisible = !controlsVisible }
+                .testTag("video_player_fullscreen")
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+            // Real VideoView Stream or Fallback Sample Stream
+            AndroidView(
+                factory = { ctx ->
+                    VideoView(ctx).apply {
+                        val videoUri = try {
+                            if (videoItem.uriString.isNotEmpty()) {
+                                Uri.parse(videoItem.uriString)
+                            } else if (videoItem.path.isNotEmpty() && !videoItem.path.startsWith("/storage")) {
+                                Uri.parse(videoItem.path)
+                            } else {
+                                Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+                            }
+                        } catch (e: Exception) {
+                            Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+                        }
+
+                        setVideoURI(videoUri)
+                        setOnPreparedListener { mp ->
+                            mp.isLooping = true
+                            start()
+                            isPlaying = true
+                        }
+                        setOnErrorListener { _, _, _ ->
+                            // Fallback on error to sample stream
+                            setVideoURI(Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
+                            start()
+                            isPlaying = true
+                            true
+                        }
+                        videoViewRef = this
+                    }
+                },
+                update = { view ->
+                    if (isPlaying && !view.isPlaying) {
+                        view.start()
+                    } else if (!isPlaying && view.isPlaying) {
+                        view.pause()
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Overlaid Visual Ambient Gradients & Controls
+            AnimatedVisibility(
+                visible = controlsVisible,
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Top Bar Overlay
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Black.copy(alpha = 0.85f), Color.Transparent)
+                                )
+                            )
+                            .padding(horizontal = 16.dp, vertical = 20.dp)
+                            .align(Alignment.TopCenter),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            IconButton(
+                                onClick = onDismiss,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "Close Player",
+                                    tint = Color.White
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = videoItem.name,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    ),
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = "${videoItem.resolution ?: "1080p FHD"} • MX Player HD",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = Color.White.copy(alpha = 0.7f),
+                                        fontSize = 11.sp
+                                    )
+                                )
+                            }
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { isMuted = !isMuted }) {
+                                Icon(
+                                    imageVector = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                    contentDescription = "Mute",
+                                    tint = Color.White
+                                )
+                            }
+                            IconButton(onClick = { /* Speed option */ }) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = "Playback Speed",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+
+                    // Center Play / Pause Controls Overlay
+                    Row(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalArrangement = Arrangement.spacedBy(28.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                videoViewRef?.let {
+                                    val current = it.currentPosition
+                                    it.seekTo((current - 10000).coerceAtLeast(0))
+                                }
+                            },
                             modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(StorageVideoRed.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
+                                .size(48.dp)
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Movie,
-                                contentDescription = "Video",
-                                tint = StorageVideoRed,
-                                modifier = Modifier.size(18.dp)
+                                imageVector = Icons.Default.Replay10,
+                                contentDescription = "Rewind 10s",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "ভিডিও প্লেয়ার",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
+
+                        IconButton(
+                            onClick = {
+                                isPlaying = !isPlaying
+                                videoViewRef?.let {
+                                    if (isPlaying) it.start() else it.pause()
+                                }
+                            },
+                            modifier = Modifier
+                                .size(68.dp)
+                                .clip(CircleShape)
+                                .background(StorageVideoRed)
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = if (isPlaying) "Pause" else "Play",
+                                tint = Color.White,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                videoViewRef?.let {
+                                    val current = it.currentPosition
+                                    it.seekTo(current + 10000)
+                                }
+                            },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Forward10,
+                                contentDescription = "Forward 10s",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
 
-                    IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Screen Canvas Simulation
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.Black),
-                    contentAlignment = Alignment.Center
-                ) {
+                    // Bottom Bar Overlay with Seekbar & Time
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Videocam,
-                            contentDescription = "Video Stream",
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = videoItem.name,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            maxLines = 1,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                        Text(
-                            text = videoItem.resolution ?: "1080p FHD",
-                            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-                        )
-                    }
-
-                    // Play Center Overlay Button
-                    IconButton(
-                        onClick = { isPlaying = !isPlaying },
                         modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(StorageVideoRed.copy(alpha = 0.85f))
+                            .fillMaxWidth()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f))
+                                )
+                            )
+                            .padding(horizontal = 20.dp, vertical = 16.dp)
+                            .align(Alignment.BottomCenter)
                     ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
+                        Slider(
+                            value = currentProgress,
+                            onValueChange = {
+                                currentProgress = it
+                                videoViewRef?.let { view ->
+                                    val dur = view.duration
+                                    if (dur > 0) {
+                                        view.seekTo((dur * it).toInt())
+                                    }
+                                }
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = StorageVideoRed,
+                                activeTrackColor = StorageVideoRed,
+                                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                            )
                         )
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "01:15 / ${videoItem.formattedDuration.ifEmpty { "03:30" }}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
 
-                // Time Bar & Slider
-                Slider(
-                    value = currentPosition,
-                    onValueChange = { currentPosition = it },
-                    colors = SliderDefaults.colors(
-                        thumbColor = StorageVideoRed,
-                        activeTrackColor = StorageVideoRed
-                    )
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "01:15",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = videoItem.formattedDuration.ifEmpty { "05:00" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Info Rows
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(
-                            text = "ফাইল সাইজ: ${videoItem.formattedSize}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 12.sp
-                        )
-                        Text(
-                            text = "ফরম্যাট: ${videoItem.mimeType}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 12.sp
-                        )
-                        Text(
-                            text = "লোকেশন: ${videoItem.path}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 12.sp,
-                            maxLines = 1
-                        )
+                            Text(
+                                text = "Format: ${videoItem.mimeType.substringAfter("/")} • ${videoItem.formattedSize}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 11.sp
+                                )
+                            )
+                        }
                     }
                 }
             }
